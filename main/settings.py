@@ -147,3 +147,6 @@ LOGGING = {
         },
     },
 }
+
+# WhiteNoise настройки для медиа файлов
+WHITENOISE_ROOT = MEDIA_ROOT

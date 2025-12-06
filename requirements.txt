@@ -4,3 +4,4 @@ asgiref==3.11.0
 sqlparse==0.5.4
 tzdata==2025.2
 python-dotenv==1.0.0  # Для загрузки переменных окружения
+whitenoise==6.8.0

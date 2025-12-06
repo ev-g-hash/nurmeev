@@ -91,7 +91,7 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = '/app/media'  # Путь для контейнера Amvera
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -99,30 +99,28 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CSRF & SESSION CONFIGURATION
 # =============================================================================
 CSRF_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SECURE = False  # Временно False
+CSRF_COOKIE_SECURE = False  # False для Amvera (нет HTTPS)
 CSRF_TRUSTED_ORIGINS = [
-    "https://nurmeev-pihtulovevgeny.amvera.io",
-    "http://nurmeev-pihtulovevgeny.amvera.io",
+    f"https://{host}" for host in ALLOWED_HOSTS if host not in ['localhost', '127.0.0.1']
+] + [
+    f"http://{host}" for host in ALLOWED_HOSTS if host not in ['localhost', '127.0.0.1']
 ]
 
 SESSION_COOKIE_AGE = 86400  # 24 hours
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False  # Временно False
+SESSION_COOKIE_SECURE = False  # False для Amvera (нет HTTPS)
 
 # =============================================================================
 # SECURITY FOR PRODUCTION
 # =============================================================================
-if DEBUG:
-    # В режиме разработки отключаем некоторые проверки
-    SECURE_SSL_REDIRECT = False
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-    SECURE_HSTS_SECONDS = 0
-else:
-    # В продакшене включаем безопасность
-    X_FRAME_OPTIONS = 'DENY'
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
+# Смягченные настройки для Amvera
+X_FRAME_OPTIONS = 'SAMEORIGIN'  # Было 'DENY'
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_SSL_REDIRECT = False  # Важно: False для Amvera
+SECURE_HSTS_SECONDS = 0  # Важно: 0 для Amvera (нет HTTPS)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
 
 # =============================================================================
 # LOGGING
@@ -148,5 +146,30 @@ LOGGING = {
     },
 }
 
+# =============================================================================
+# WHITENOISE SETTINGS
+# =============================================================================
 # WhiteNoise настройки для медиа файлов
 WHITENOISE_ROOT = MEDIA_ROOT
+
+# Настройки для статических файлов
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# =============================================================================
+# ADDITIONAL SETTINGS
+# =============================================================================
+# Отключаем проверку реферера для Amvera
+SECURE_REFERRER_POLICY = None
+
+# Отключаем проверку Content-Type для статических файлов
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Настройки для загрузки файлов
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+FILE_UPLOAD_PERMISSIONS = 0o644
+
+# Отключаем проверку хоста при DEBUG=False (для Amvera)
+if not DEBUG:
+    # Разрешаем все хосты из ALLOWED_HOSTS
+    pass
